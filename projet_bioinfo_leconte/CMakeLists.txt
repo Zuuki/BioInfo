@@ -9,4 +9,9 @@ set(BW_BUILD
     "src/bw-build.cc"
     )
 
-add_executable(bw_build ${BW_BUILD})
+set(BW_SEARCH
+    "src/bw-search.cc"
+    )
+
+add_executable(bw-build ${BW_BUILD})
+add_executable(bw-search ${BW_SEARCH})

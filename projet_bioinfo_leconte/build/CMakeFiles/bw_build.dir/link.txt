@@ -1,1 +1,0 @@
-/usr/bin/c++  -g -Wall -Wextra -pedantic -std=c++2a CMakeFiles/bw_build.dir/src/bw-build.cc.o -o bw_build 

@@ -1,3 +1,0 @@
-/home/meliodas/BioInfo/projet_bioinfo_leconte/build/CMakeFiles/rebuild_cache.dir
-/home/meliodas/BioInfo/projet_bioinfo_leconte/build/CMakeFiles/edit_cache.dir
-/home/meliodas/BioInfo/projet_bioinfo_leconte/build/CMakeFiles/bw_build.dir
