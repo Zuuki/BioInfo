@@ -31,7 +31,7 @@ string Burrows_Weller(string sequence, vector<int>* index) {
     auto len = temp.length();
 
     // Index intiation
-    for (int i = 0; i < len; i++)
+    for (long unsigned int i = 0; i < len; i++)
         index->push_back(i);
 
     // Create all possible shiftings
@@ -46,7 +46,6 @@ string Burrows_Weller(string sequence, vector<int>* index) {
         for (long unsigned int j = 0; j < len; j++) {
             if (matrix[i][j] == '$') {
                 suffixes[i] = matrix[i].substr(0, j + 1);
-                cout << matrix[i] << " | " << suffixes[i] << endl;
                 break;
             }
         }
@@ -76,13 +75,12 @@ string Burrows_Weller(string sequence, vector<int>* index) {
     for (long unsigned int i = 0; i < len; i++) {
         res << matrix[i][len - 1];
     }
-    cout << "res.str(): " << res.str() << endl;
     return res.str();
 }
 
 string bw_compress(string t_seq, int* n, int* p) {
     // Finding the $
-    for (unsigned int i = 0; i < t_seq.length(); i++) {
+    for (long unsigned int i = 0; i < t_seq.length(); i++) {
         if (t_seq[i] == '$') {
             *n = i;
             t_seq = t_seq.substr(0, i) + t_seq.substr(i + 1, t_seq.length());
@@ -98,23 +96,15 @@ string bw_compress(string t_seq, int* n, int* p) {
 
     string res = "";
     uint8_t tmp = 0;
-    cout << "t_seq: " << t_seq << endl;
-    cout << t_seq.length() << endl;
     for (long unsigned int i = 0; i < t_seq.length(); i++) {
-        // Tag the '$' position
-        if (t_seq[i] == 'A')
-            tmp |= 0b00;
-
         if (t_seq[i] == 'C')
-            tmp |= 0b01;
+            tmp ^= 0b01000000;
 
         if (t_seq[i] == 'G')
-            tmp |= 0b10;
+            tmp ^= 0b10000000;
 
         if (t_seq[i] == 'T')
-            tmp |= 0b11;
-
-        cout << (int) tmp << endl;
+            tmp ^= 0b11000000;
 
         // Reset current byte
         if (i % 4 == 3) {
@@ -122,30 +112,62 @@ string bw_compress(string t_seq, int* n, int* p) {
             tmp = 0;
         }
 
-        tmp = tmp << 2;
+        tmp = tmp >> 2;
     }
     return res;
 }
 
 int main(int argc, char** argv) {
-    // Verify is there is enough arguments
-    if (argc != 4 && argc != 5) {
-        throw (invalid_argument("Too many or too few arguments, 3 required (4 with option --compress)"));
+    // Verifying that there is enough arguments
+    if (argc < 4 && argc > 8) {
+        throw (invalid_argument("Too many or too few arguments, RTFM"));
     }
 
     // Verify is option compress is here or not
     bool compress = false;
-    if (argc == 5) {
-        if ((string) argv[1] == "--compress") {
+    bool progressive = false;
+    int k = -1;
+    bool checked[argc];
+    for (int i = 1; i < argc; i++) {
+        checked[i] = false;
+        if ((string) argv[i] == "--compress") {
             compress = true;
-        } else {
-            throw (invalid_argument("Option not recognized, only --compress is handled"));
+            checked[i] = true;
+        }
+        else if ((string) argv[i] == "--progressive") {
+            if (i == argc - 1) {
+                throw (invalid_argument("Missing k after --progressive"));
+            }
+            progressive = true;
+            k = atoi(argv[i + 1]);
+            checked[i] = true;
+            checked[i + 1] = true;
         }
     }
 
-    char* infile = argv[1 + (argc == 5)];
-    char* outfile = argv[2 + (argc == 5)];
-    char* f = argv[3 + (argc == 5)];
+    // Arguments searching
+    int infile_pos = -1;
+    int outfile_pos = -1;
+    int f_pos = -1;
+
+    for (int i = 1; i < argc; i++) {
+        if (!checked[i]) {
+            if (infile_pos == -1)
+                infile_pos = i;
+            else if (outfile_pos == -1)
+                outfile_pos = i;
+            else if (f_pos == -1)
+                f_pos = i;
+        }
+    }
+
+    if (infile_pos == -1 || outfile_pos == -1 || f_pos == -1) {
+        throw (invalid_argument("Too few arguments, RTFM"));
+    }
+
+    char* infile = argv[infile_pos];
+    char* outfile = argv[outfile_pos];
+    int f = atoi(argv[f_pos]);
 
     // Opening FASTA file
     ifstream pInfile(infile);
@@ -163,34 +185,58 @@ int main(int argc, char** argv) {
         throw (invalid_argument(error.str()));
     }
 
+    // Sequence read from fasta file
     string sequence = read_fasta(pInfile);
-    vector<int> index = vector<int>();
-    string t_sequence = Burrows_Weller(sequence, &index);
+
+    // Vector containing the list of indexes
+    vector<vector<int>> indexes = vector<vector<int>>();
+
+    // Needed if we have --progressive
+    vector<string> sequence_split = vector<string>();
+
+    // Vector containing the transformed sequences
+    vector<string> t_sequences = vector<string>();
+    if (k != -1) {
+        
+    } else {
+        vector<int> tmp = vector<int>();
+        indexes.push_back(tmp);
+        sequence_split.push_back(sequence);
+    }
+
+    for (int i = 0; i < sequence_split.size(); i++) {
+        t_sequences.push_back(Burrows_Weller(sequence_split[i], &indexes[i]));
+    }
 
     // Creating output flags
     int n = 0;
     int p = 0;
     int c = compress ? 1 : 0;
-
-    if (c) {
-        string t = bw_compress(t_sequence, &n, &p);
-        pOutfile << c << ' ' << n << ' ' << p << ' ' << f << endl;
-        for (unsigned long int i = 0; i < t_sequence.length(); i++) {
-            pOutfile << index[i];
-            if (i != t_sequence.length() - 1)
-                pOutfile << ',';
+    if (k == -1) {
+        if (c) {
+            string t = bw_compress(t_sequences[0], &n, &p);
+            pOutfile << c << ' ' << n << ' ' << p << ' ' << f << endl;
+            for (unsigned long int i = 0; i < t_sequences[0].length(); i += f) {
+                pOutfile << indexes[0][i];
+                if (i != t_sequences[0].length() - 1 && i + f < t_sequences[0].length())
+                    pOutfile << ',';
+            }
+            //if ((t_sequences[0].length() - 1) % f != 0)
+            //    pOutfile << indexes[0][t_sequences[0].length() - 1];
+            pOutfile << endl;
+            pOutfile << t;
+        } else {
+            pOutfile << c << ' ' << n << ' ' << p << ' ' << f << endl;
+            for (unsigned long int i = 0; i < t_sequences[0].length(); i += f) {
+                pOutfile << indexes[0][i];
+                if (i != t_sequences[0].length() - 1 &&  i + f < t_sequences[0].length())
+                    pOutfile << ',';
+            }
+            //if ((t_sequences[0].length() - 1) % f != 0)
+            //    pOutfile << indexes[0][t_sequences[0].length() - 1];
+            pOutfile << endl;
+            pOutfile << t_sequences[0];
         }
-        pOutfile << endl;
-        pOutfile << t << endl;
-    } else {
-        pOutfile << c << ' ' << n << ' ' << p << ' ' << f << endl;
-        for (unsigned long int i = 0; i < t_sequence.length(); i++) {
-            pOutfile << index[i];
-            if (i != t_sequence.length() - 1)
-                pOutfile << ',';
-        }
-        pOutfile << endl;
-        pOutfile << t_sequence << endl;
     }
 
     // Closing files
