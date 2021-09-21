@@ -1,16 +1,17 @@
-# BioInfo
-Bio Info Project
+# BioInfo Project
+The goal of this project is to implement the Burrows-Wheeler Transform: https://en.wikipedia.org/wiki/Burrows%E2%80%93Wheeler_transform  
+In a nutshell it is useful while dealing with long ADN sequences, it is a compromise between space taken by the sequence and time used when we are trying to search patterns matching.
 
 ## How to build this project
-mkdir build
-cd build
-cmake ..
-make
+    mkdir build  
+    cd build  
+    cmake ..  
+    make  
 
 You have now access to 2 exectuables:
 
-bw-build
-bw-search
+    bw-build  
+    bw-search
 
 ## bw-build arguments
 
