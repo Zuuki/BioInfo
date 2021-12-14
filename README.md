@@ -1,6 +1,6 @@
 # BioInfo Project
 The goal of this project is to implement the Burrows-Wheeler Transform: https://en.wikipedia.org/wiki/Burrows%E2%80%93Wheeler_transform  
-In a nutshell it is useful while dealing with long ADN sequences, it is a compromise between space taken by the sequence and time used when we are trying to search patterns matching.
+In a nutshell it is useful while dealing with long ADN sequences, it is a compromise between space taken by the sequence and time used when we are trying to search matching patterns.
 
 ## How to build this project
     mkdir build  
